@@ -1,48 +1,24 @@
-// Theme toggle
+// Light / dark mode
 document.getElementById('themeToggle').addEventListener('click', () => {
   const dark = document.documentElement.classList.toggle('dark');
   localStorage.setItem('theme', dark ? 'dark' : 'light');
 });
 
-// Tashkent local time
-const clock = document.getElementById('clock');
-const fmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Tashkent', hour: '2-digit', minute: '2-digit' });
-const tick = () => { clock.textContent = fmt.format(new Date()); };
-tick();
-setInterval(tick, 30000);
+// Mobile menu
+const navLinks = document.getElementById('navLinks');
+document.getElementById('menuBtn').addEventListener('click', () => navLinks.classList.toggle('open'));
+navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
 
-// Count-up numbers
-const countUp = el => {
-  const target = +el.dataset.count;
-  const pre = el.dataset.prefix || '', suf = el.dataset.suffix || '';
-  const start = performance.now(), dur = 1400;
-  const step = now => {
-    const p = Math.min((now - start) / dur, 1);
-    const eased = 1 - Math.pow(1 - p, 3);
-    el.textContent = pre + Math.round(target * eased).toLocaleString('en-US') + suf;
-    if (p < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
-};
-const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-// Reveal on scroll (staggered within each grid)
+// Fade cards in as you scroll
 const io = new IntersectionObserver(entries => {
   entries.forEach(e => {
-    if (!e.isIntersecting) return;
-    const el = e.target;
-    const siblings = [...el.parentElement.children];
-    el.style.transitionDelay = reduce ? '0s' : (siblings.indexOf(el) % 6) * 60 + 'ms';
-    el.classList.add('visible');
-    setTimeout(() => { el.style.transitionDelay = ''; }, 1200);
-    if (!reduce) el.querySelectorAll('[data-count]').forEach(countUp);
-    io.unobserve(el);
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
   });
-}, { threshold: 0.12 });
+}, { threshold: 0.1 });
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-// Active nav link
-const links = [...document.querySelectorAll('.nav-links a')];
+// Highlight the current section in the menu
+const links = [...navLinks.querySelectorAll('a')];
 const spy = new IntersectionObserver(entries => {
   entries.forEach(e => {
     if (e.isIntersecting) links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
